@@ -29,12 +29,14 @@ def tych_isinstance(value, ty):
 
 def tych_typename(ty):
   if isinstance(ty, TychType):
-    return repr(ty)
+    return str(ty)
+  elif isinstance(ty, list):
+    return "[" + ", ".join(tych_typename(x) for x in ty) + "]"
   else:
     return ty.__name__
 
 class TychType(object):
-  def __repr__(self):
+  def __str__(self):
     raise NotImplementedError
 
   def inv_isa(self, value):
@@ -43,25 +45,26 @@ class TychType(object):
 class OptionTy(TychType):
   def __init__(self, ty):
     super().__init__()
-    self.inner = ty
+    self._inner = ty
 
-  def __repr__(self):
-    return "OptionTy({:s})".format(tych_typename(self.inner))
+  def __str__(self):
+    return "OptionTy({:s})".format(tych_typename(self._inner))
 
   def inv_isa(self, value):
-    return value is None or tych_isinstance(value, self.inner)
+    return value is None or tych_isinstance(value, self._inner)
 
 class UnionTy(TychType):
   def __init__(self, ty1, *tys):
     super().__init__()
-    self.inner = [ty1]
-    self.inner.extend(tys)
+    self._inner = [ty1]
+    self._inner.extend(tys)
 
-  def __repr__(self):
-    return "UnionTy({:s})".format(repr(self.inner))
+  def __str__(self):
+    #return "UnionTy({:s})".format(repr(self._inner))
+    return "UnionTy({:s})".format(tych_typename(self._inner))
 
   def inv_isa(self, value):
-    for ty in self.inner:
+    for ty in self._inner:
       if tych_isinstance(value, ty):
         return True
     return False
